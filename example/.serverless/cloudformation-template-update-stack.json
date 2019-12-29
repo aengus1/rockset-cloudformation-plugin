@@ -1,0 +1,124 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "RocksetIntegration": {
+      "Type": "Custom::RocksetIntegration",
+      "Version": 1,
+      "Properties": {
+        "ServiceToken": "arn:aws:lambda:ca-central-1:556823078430:function:RocksetIntegration",
+        "Name": "staging-rocksetTest",
+        "Region": "ca-central-1",
+        "Stage": "staging",
+        "ApiKeySSM": "staging-rockset-api-key",
+        "ExternalId": "7f8a915dfc74e3b5aea8f37f34f1d869726a8aca5c6a8e14d36a4825db25d628",
+        "RocksetAccountId": "318212636800",
+        "IntegrationType": "dynamodb",
+        "AccessibleResources": [
+          "arn:aws:dynamodb:*:*:table/*",
+          "arn:aws:dynamodb:*:*:table/*/stream/*"
+        ],
+        "Tags": [
+          {
+            "Key": "project",
+            "Value": "rockset-test"
+          }
+        ]
+      }
+    },
+    "RocksetWorkspace": {
+      "Type": "Custom::RocksetWorkspace",
+      "Version": 1,
+      "Properties": {
+        "ServiceToken": "arn:aws:lambda:ca-central-1:556823078430:function:RocksetWorkspace",
+        "Name": "testWorkspace",
+        "Description": "test workspace",
+        "Region": "ca-central-1",
+        "ApiKeySSM": "staging-rockset-api-key"
+      }
+    },
+    "RocksetCollection": {
+      "Type": "Custom::RocksetCollection",
+      "Version": 1,
+      "Properties": {
+        "ServiceToken": "arn:aws:lambda:ca-central-1:556823078430:function:RocksetCollection",
+        "Name": "testCollection",
+        "Description": "part of test stack",
+        "Workspace": {
+          "Fn::GetAtt": [
+            "RocksetWorkspace",
+            "WorkspaceName"
+          ]
+        },
+        "Region": "ca-central-1",
+        "Stage": "staging",
+        "IntegrationName": {
+          "Fn::GetAtt": [
+            "RocksetIntegration",
+            "IntegrationName"
+          ]
+        },
+        "ApiKeySSM": "staging-rockset-api-key",
+        "DynamoDbDataSource": {
+          "DynamoDbAwsRegion": "ca-central-1",
+          "DynamoDbTableName": "staging-crunch-Activity",
+          "DynamoDbRcu": 1
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      }
+    },
+    "IntegrationName": {
+      "Value": {
+        "Fn::GetAtt": [
+          "RocksetIntegration",
+          "IntegrationName"
+        ]
+      },
+      "Export": {
+        "Name": "RocksetIntegrationName"
+      }
+    },
+    "WorkspaceName": {
+      "Value": {
+        "Fn::GetAtt": [
+          "RocksetWorkspace",
+          "WorkspaceName"
+        ]
+      },
+      "Export": {
+        "Name": "RocksetWorkspaceName"
+      }
+    },
+    "CollectionName": {
+      "Value": {
+        "Fn::GetAtt": [
+          "RocksetCollection",
+          "CollectionName"
+        ]
+      },
+      "Export": {
+        "Name": "RocksetCollectionName"
+      }
+    }
+  }
+}

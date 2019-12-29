@@ -1,0 +1,599 @@
+{
+  "service": {
+    "service": "cloudformation-rockset",
+    "serviceObject": {
+      "name": "cloudformation-rockset"
+    },
+    "provider": {
+      "stage": "staging",
+      "variableSyntax": "\\${{([ ~:a-zA-Z0-9._\\'\",\\-\\/\\(\\)]+?)}}",
+      "name": "aws",
+      "runtime": "java8",
+      "region": "ca-central-1",
+      "stackName": "staging-cloudformation-rockset-stack",
+      "Tags": [
+        {
+          "Key": "module",
+          "Value": "cloudformation-rockset"
+        }
+      ],
+      "iamRoleStatements": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "ssm:GetParameter"
+          ],
+          "Resource": "arn:aws:ssm:ca-central-1:*:parameter/*-*-api-key"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "iam:TagRole",
+            "iam:DeletePolicy",
+            "iam:CreateRole",
+            "iam:AttachRolePolicy",
+            "iam:DetachRolePolicy",
+            "iam:DeleteRolePolicy",
+            "iam:ListAttachedRolePolicies",
+            "iam:ListAttachedUserPolicies",
+            "iam:ListRolePolicies",
+            "iam:GetRole",
+            "iam:GetPolicy",
+            "iam:DeleteRole",
+            "iam:CreatePolicy",
+            "iam:GetUser",
+            "iam:GetRolePolicy"
+          ],
+          "Resource": [
+            "arn:aws:iam::*:policy/*",
+            "arn:aws:iam::*:role/*"
+          ]
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "iam:ListPolicies"
+          ],
+          "Resource": [
+            "arn:aws:iam::*:role/*"
+          ]
+        }
+      ],
+      "versionFunctions": true,
+      "remoteFunctionData": null,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "RocksetIntegrationLambdaLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/RocksetIntegration"
+            }
+          },
+          "RocksetWorkspaceLambdaLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/RocksetWorkspace"
+            }
+          },
+          "RocksetCollectionLambdaLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/RocksetCollection"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "staging",
+                        "cloudformation-rockset",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/RocksetIntegration:*"
+                          },
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/RocksetWorkspace:*"
+                          },
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/RocksetCollection:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/RocksetIntegration:*:*"
+                          },
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/RocksetWorkspace:*:*"
+                          },
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/RocksetCollection:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][1]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][2]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][3]"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "cloudformation-rockset",
+                    "staging",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "RocksetIntegrationLambdaLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/cloudformation-rockset/staging/1577599733878-2019-12-29T06:08:53.878Z/cloudformation-rockset.zip"
+              },
+              "FunctionName": "RocksetIntegration",
+              "Handler": "ski.crunch.rockset.lambda.RocksetIntegrationLambda",
+              "MemorySize": 512,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Runtime": "java8",
+              "Timeout": 240,
+              "Environment": {
+                "Variables": {
+                  "awsAccountId": {
+                    "Ref": "AWS::AccountId"
+                  }
+                }
+              }
+            },
+            "DependsOn": [
+              "RocksetIntegrationLambdaLogGroup",
+              "IamRoleLambdaExecution"
+            ]
+          },
+          "RocksetIntegrationLambdaLambdaVersionyp5wpE5rtLyQfk3SEkQ8JjV1wN4FQ4Oad0xAko": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "RocksetIntegrationLambdaLambdaFunction"
+              },
+              "CodeSha256": "lxVaZm/JND1Jbc4vHw1SCO9/f8FJrqJ4zYQBSmXiy3Y="
+            }
+          },
+          "RocksetWorkspaceLambdaLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/cloudformation-rockset/staging/1577599733878-2019-12-29T06:08:53.878Z/cloudformation-rockset.zip"
+              },
+              "FunctionName": "RocksetWorkspace",
+              "Handler": "ski.crunch.rockset.lambda.RocksetWorkspaceLambda",
+              "MemorySize": 512,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Runtime": "java8",
+              "Timeout": 240
+            },
+            "DependsOn": [
+              "RocksetWorkspaceLambdaLogGroup",
+              "IamRoleLambdaExecution"
+            ]
+          },
+          "RocksetWorkspaceLambdaLambdaVersionCzgxaAXTL9MErjK2IDAANN4A2cdlSzBT4Z7zi2E": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "RocksetWorkspaceLambdaLambdaFunction"
+              },
+              "CodeSha256": "lxVaZm/JND1Jbc4vHw1SCO9/f8FJrqJ4zYQBSmXiy3Y="
+            }
+          },
+          "RocksetCollectionLambdaLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/cloudformation-rockset/staging/1577599733878-2019-12-29T06:08:53.878Z/cloudformation-rockset.zip"
+              },
+              "FunctionName": "RocksetCollection",
+              "Handler": "ski.crunch.rockset.lambda.RocksetCollectionLambda",
+              "MemorySize": 512,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Runtime": "java8",
+              "Timeout": 240
+            },
+            "DependsOn": [
+              "RocksetCollectionLambdaLogGroup",
+              "IamRoleLambdaExecution"
+            ]
+          },
+          "RocksetCollectionLambdaLambdaVersionFFqTIVWGmxpMTRcBW67qcA77rGdo6oraOpoQQrsvz8": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "RocksetCollectionLambdaLambdaFunction"
+              },
+              "CodeSha256": "lxVaZm/JND1Jbc4vHw1SCO9/f8FJrqJ4zYQBSmXiy3Y="
+            }
+          },
+          "SsmParamForRocksetApiKey": {
+            "Type": "AWS::SSM::Parameter",
+            "Properties": {
+              "Name": "staging-rockset-api-key",
+              "Type": "String",
+              "Value": "abc123",
+              "Description": "SSM Parameter for storing rockset api key"
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            }
+          },
+          "RocksetIntegrationLambdaLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "RocksetIntegrationLambdaLambdaVersionyp5wpE5rtLyQfk3SEkQ8JjV1wN4FQ4Oad0xAko"
+            }
+          },
+          "RocksetWorkspaceLambdaLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "RocksetWorkspaceLambdaLambdaVersionCzgxaAXTL9MErjK2IDAANN4A2cdlSzBT4Z7zi2E"
+            }
+          },
+          "RocksetCollectionLambdaLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "RocksetCollectionLambdaLambdaVersionFFqTIVWGmxpMTRcBW67qcA77rGdo6oraOpoQQrsvz8"
+            }
+          },
+          "RocksetIntegrationFunctionArn": {
+            "Description": "Rockset Integration Lambda Function ARN",
+            "Value": {
+              "Fn::GetAtt": [
+                "RocksetIntegrationLambdaLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Export": {
+              "Name": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Ref": "AWS::StackName"
+                    },
+                    "-RocksetIntegrationFunction"
+                  ]
+                ]
+              }
+            }
+          },
+          "RocksetWorkspaceFunctionArn": {
+            "Description": "Rockset Workspace Lambda Function ARN",
+            "Value": {
+              "Fn::GetAtt": [
+                "RocksetWorkspaceLambdaLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Export": {
+              "Name": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Ref": "AWS::StackName"
+                    },
+                    "-RocksetWorkspaceFunction"
+                  ]
+                ]
+              }
+            }
+          },
+          "RocksetCollectionFunctionArn": {
+            "Description": "Rockset Collection Lambda Function ARN",
+            "Value": {
+              "Fn::GetAtt": [
+                "RocksetCollectionLambdaLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Export": {
+              "Name": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Ref": "AWS::StackName"
+                    },
+                    "-RocksetCollectionFunction"
+                  ]
+                ]
+              }
+            }
+          }
+        }
+      },
+      "coreCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "custom": {
+      "currentStage": "staging",
+      "resourceTags": {
+        "$ref": "$[\"service\"][\"provider\"][\"Tags\"]"
+      }
+    },
+    "pluginsData": {},
+    "functions": {
+      "RocksetIntegrationLambda": {
+        "name": "RocksetIntegration",
+        "handler": "ski.crunch.rockset.lambda.RocksetIntegrationLambda",
+        "memorySize": 512,
+        "timeout": 240,
+        "environment": {
+          "awsAccountId": {
+            "Ref": "AWS::AccountId"
+          }
+        },
+        "Tags": {
+          "$ref": "$[\"service\"][\"provider\"][\"Tags\"]"
+        },
+        "events": [],
+        "package": {},
+        "memory": 512,
+        "runtime": "java8",
+        "vpc": {}
+      },
+      "RocksetWorkspaceLambda": {
+        "name": "RocksetWorkspace",
+        "handler": "ski.crunch.rockset.lambda.RocksetWorkspaceLambda",
+        "memorySize": 512,
+        "timeout": 240,
+        "Tags": {
+          "$ref": "$[\"service\"][\"provider\"][\"Tags\"]"
+        },
+        "events": [],
+        "package": {},
+        "memory": 512,
+        "runtime": "java8",
+        "vpc": {}
+      },
+      "RocksetCollectionLambda": {
+        "name": "RocksetCollection",
+        "handler": "ski.crunch.rockset.lambda.RocksetCollectionLambda",
+        "memorySize": 512,
+        "timeout": 240,
+        "Tags": {
+          "$ref": "$[\"service\"][\"provider\"][\"Tags\"]"
+        },
+        "events": [],
+        "package": {},
+        "memory": 512,
+        "runtime": "java8",
+        "vpc": {}
+      }
+    },
+    "resources": {
+      "Resources": {
+        "SsmParamForRocksetApiKey": {
+          "Type": "AWS::SSM::Parameter",
+          "Properties": {
+            "Name": "staging-rockset-api-key",
+            "Type": "String",
+            "Value": "abc123",
+            "Description": "SSM Parameter for storing rockset api key"
+          }
+        }
+      },
+      "Outputs": {
+        "RocksetIntegrationFunctionArn": {
+          "Description": "Rockset Integration Lambda Function ARN",
+          "Value": {
+            "Fn::GetAtt": [
+              "RocksetIntegrationLambdaLambdaFunction",
+              "Arn"
+            ]
+          },
+          "Export": {
+            "Name": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-RocksetIntegrationFunction"
+                ]
+              ]
+            }
+          }
+        },
+        "RocksetWorkspaceFunctionArn": {
+          "Description": "Rockset Workspace Lambda Function ARN",
+          "Value": {
+            "Fn::GetAtt": [
+              "RocksetWorkspaceLambdaLambdaFunction",
+              "Arn"
+            ]
+          },
+          "Export": {
+            "Name": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-RocksetWorkspaceFunction"
+                ]
+              ]
+            }
+          }
+        },
+        "RocksetCollectionFunctionArn": {
+          "Description": "Rockset Collection Lambda Function ARN",
+          "Value": {
+            "Fn::GetAtt": [
+              "RocksetCollectionLambdaLambdaFunction",
+              "Arn"
+            ]
+          },
+          "Export": {
+            "Name": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-RocksetCollectionFunction"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    "serviceFilename": "serverless.yml",
+    "layers": {}
+  },
+  "package": {
+    "artifactDirectoryName": "serverless/cloudformation-rockset/staging/1577599733878-2019-12-29T06:08:53.878Z",
+    "artifact": "cloudformation-rockset.zip"
+  }
+}
