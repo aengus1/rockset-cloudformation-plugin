@@ -54,7 +54,8 @@ Integrations, Workspaces and Collections to your Cloudformation stack.
 
  
 ## Documentation
-TODO -> DOCUMENT ALL THE FIELDS SUPPORTED
+
+See [example/serverless.yml](example/serverless.yml) for a working example.
 
 ### Integration
 
