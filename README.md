@@ -56,7 +56,92 @@ Integrations, Workspaces and Collections to your Cloudformation stack.
 ## Documentation
 TODO -> DOCUMENT ALL THE FIELDS SUPPORTED
 
+### Integration
 
+Example:
+```
+RocksetIntegration:
+  Type: Custom::RocksetIntegration
+  Version: 1.0
+  Properties:
+    ServiceToken: {{copy and paste output from custom resources stack deployment, or use a reference -> see example/serverless.yml}}
+    Name: {{choose a name for integration}}
+    Region: ca-canada-1
+    Stage: staging
+    ApiKeySSM: staging-rockset-api-key
+    ApiServer: {{override of rockset api server name (optional -> defaults to api.rs2.usw2.rockset.com}}
+    ExternalId: {{paste external id string obtained from rockset console}}
+    RocksetAccountId: {{paste account id obtained from rockset console}}
+    IntegrationType: {{dynamodb, redshift, kinesis}}
+    AccessibleResources:  {{list of arn's the rockset role will have read access to}}
+    - arn:aws:dynamodb:*:*:table/*
+    - arn:aws:dynamodb:*:*:table/*/stream/*
+    Tags: {{list of tags to apply to rockset role and policy (optional)}}
+```
+
+### Workspace
+```
+   RocksetWorkspace:
+     Type: Custom::RocksetWorkspace
+     Version: 1.0
+     Properties:
+       ServiceToken: {{service token returned by cloudformation stack}}
+       Name: {{workspace name}}
+       Description: {{description of workspace (optional)}}
+       Region: ca-canada-1
+       ApiKeySSM: staging-rockset-api-key
+       ApiServer: {{override of rockset api server name (optional -> defaults to api.rs2.usw2.rockset.com}}
+```
+
+### Collection
+```
+RocksetCollection:
+  Type: Custom::RocksetCollection
+  Version: 1.0
+  Properties:
+    ServiceToken: {{service token returned by cloudformation stack}}
+    Name: {{choose a name for collection }}
+    Description: {{description of collection  (optional) }}
+    Workspace: {{reference a workspace created by CF.. or use a preexisting one}}
+        Fn::GetAtt:
+          - RocksetWorkspace
+          - WorkspaceName
+    Region: ca-canada-1
+    Stage: staging
+    IntegrationName: {{reference an integration created by CF or use a preexisting one}}
+      Fn::GetAtt:
+        - RocksetIntegration
+        - IntegrationName
+    ApiKeySSM: {{name of ssm parameter containing api key}}
+    RocksetAccountId: {{<rocket AWS account id for integrations}}
+    S3DataSource:   {{optional.  1 or more data source is required}}
+      S3Prefix:  {{see https://docs.rockset.com/rest-api#createcollection}}
+      S3Pattern:  {{see https://docs.rockset.com/rest-api#createcollection}}
+      S3Bucket:  {{see https://docs.rockset.com/rest-api#createcollection}}
+    KinesisDataSource:  {{optional.  1 or more data source is required}}
+      KinesisStreamName:  {{see https://docs.rockset.com/rest-api#createcollection}}
+      KinesisAwsRegion:  {{see https://docs.rockset.com/rest-api#createcollection}}
+    DynamoDbDataSource:  {{optional.  1 or more data source is required}}
+      DynamoDbAwsRegion:  {{see https://docs.rockset.com/rest-api#createcollection}}
+      DynamoDbTableName:  {{see https://docs.rockset.com/rest-api#createcollection}}
+      DynamoDbRcu:  {{see https://docs.rockset.com/rest-api#createcollection}}
+    EventTimeInfo:  {{optional}}
+      Field:  {{see https://docs.rockset.com/rest-api#createcollection}}
+      Format:  {{see https://docs.rockset.com/rest-api#createcollection}}
+      TimeZone:  {{see https://docs.rockset.com/rest-api#createcollection}}
+    RetentionTime:  {{optional -> see https://docs.rockset.com/rest-api#createcollection}}
+    FieldMappings:  {{optional -> see https://docs.rockset.com/rest-api#createcollection}}
+      - Name:
+        InputFields:
+            - FieldName:
+              IfMissing:
+              IsDrop:
+              Param:
+          Output:
+            FieldName:
+            Value:
+            OnError:
+```
 ## Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
@@ -69,13 +154,6 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 * **Aengus McCullough** - *Initial work* - [Aengus](https://github.com/aengus1)
 
-
 ## License
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
